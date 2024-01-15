@@ -13,7 +13,6 @@ export default class StepSlider {
     this.countPercents();
 
     let thumb = this.elem.querySelector('.slider__thumb');
-    // thumb.value = this.value;
 
     thumb.onpointerdown = (event) => {
       let elem = document.querySelector('.slider');
@@ -28,7 +27,6 @@ export default class StepSlider {
       }
 
       function move(event) {
-        console.log(event.clientX, 111);
         let left = event.clientX - elem.getBoundingClientRect().left;
         let leftRelative = left / elem.offsetWidth;
   
@@ -62,26 +60,8 @@ export default class StepSlider {
         document.removeEventListener('pointermove', onPointerMove);
         elem.classList.remove('slider_dragging');
         
-        console.log(event.curentTarget.myValue);
-        let left = event.clientX - elem.getBoundingClientRect().left;
-        let leftRelative = left / elem.offsetWidth;
-
-        if (leftRelative < 0) {
-          leftRelative = 0;
-        }
-  
-        if (leftRelative > 1) {
-          leftRelative = 1;
-        }
-  
-        let segments = 5;
-        let approximateValue = leftRelative * segments;
-        let rounded = Math.round(approximateValue)
-
-        console.log(rounded, approximateValue);
-        
         let sliderChange = new CustomEvent('slider-change', {
-          detail : rounded,
+          detail : this.value,
           bubbles : true
         })
   
@@ -112,7 +92,6 @@ export default class StepSlider {
     let thumb = this.elem.querySelector('.slider__thumb');
     let progress = this.elem.querySelector('.slider__progress');
 
-    console.log(this.value, this.steps);
     let leftPercents = this.value / (this.steps - 1) * 100;
 
     thumb.style.left = `${leftPercents}%`;
