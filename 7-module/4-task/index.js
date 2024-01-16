@@ -7,6 +7,53 @@ export default class StepSlider {
     this.render();
   }
 
+  onPointerDown = (event) => {
+    this.elem.classList.add('slider_dragging');
+    event.preventDefault(); 
+    document.addEventListener('pointermove', this.onPointerMove)      
+    document.addEventListener('pointerup', this.onPointerUp);
+  }
+
+  onPointerUp = () => {
+    document.removeEventListener('pointerup', this.onPointerUp);
+    document.removeEventListener('pointermove', this.onPointerMove);
+    this.elem.classList.remove('slider_dragging');
+    
+    let sliderChange = new CustomEvent('slider-change', {
+      detail : this.value,
+      bubbles : true
+    })
+
+    this.elem.dispatchEvent(sliderChange);
+  }
+
+  onPointerMove = (event) => {
+    event.preventDefault();
+    let left = event.clientX - this.elem.getBoundingClientRect().left;
+    let leftRelative = left / this.elem.offsetWidth;
+
+    if (leftRelative < 0) {
+      leftRelative = 0;
+    }
+
+    if (leftRelative > 1) {
+      leftRelative = 1;
+    }
+
+    let leftPercents = leftRelative * 100;
+    let thumb = this.elem.querySelector('.slider__thumb');
+    let progress = this.elem.querySelector('.slider__progress');
+
+    thumb.style.left = `${leftPercents}%`;
+    progress.style.width = `${leftPercents}%`;
+    let segments = this.steps - 1;
+    let approximateValue = leftRelative * segments;
+    let sliderValue = document.querySelector('.slider__value');
+    let rounded = Math.round(approximateValue)
+    this.value = rounded;
+    sliderValue.textContent = rounded;
+  }
+
   render() {
     this.elem = this.createSlider();
     this.elem.appendChild(this.createSliderSteps());
@@ -14,62 +61,8 @@ export default class StepSlider {
 
     let thumb = this.elem.querySelector('.slider__thumb');
 
-    thumb.onpointerdown = (event) => {
-      let elem = document.querySelector('.slider');
-      elem.classList.add('slider_dragging');
-      
-      event.preventDefault(); 
-      
-      document.addEventListener('pointermove', onPointerMove)      
-
-      function onPointerMove(event) {
-        move(event)
-      }
-
-      function move(event) {
-        let left = event.clientX - elem.getBoundingClientRect().left;
-        let leftRelative = left / elem.offsetWidth;
-  
-        if (leftRelative < 0) {
-          leftRelative = 0;
-        }
-  
-        if (leftRelative > 1) {
-          leftRelative = 1;
-        }
-  
-        let leftPercents = leftRelative * 100;
-        let thumb = elem.querySelector('.slider__thumb');
-        let progress = elem.querySelector('.slider__progress');
-  
-        thumb.style.left = `${leftPercents}%`;
-        progress.style.width = `${leftPercents}%`;
-        // ??? steps, this
-        let segments = 5 - 1;
-        let approximateValue = leftRelative * segments;
-        let sliderValue = document.querySelector('.slider__value');
-        let rounded = Math.round(approximateValue)
-        document.myValue = rounded;
-        sliderValue.textContent = rounded;
-      }
-
-      document.addEventListener('pointerup', onPointerUp);
-
-      function onPointerUp() {
-        document.removeEventListener('pointerup', onPointerUp);
-        document.removeEventListener('pointermove', onPointerMove);
-        elem.classList.remove('slider_dragging');
-        
-        let sliderChange = new CustomEvent('slider-change', {
-          detail : this.value,
-          bubbles : true
-        })
-  
-        elem.dispatchEvent(sliderChange);
-      }
-    };
-
     thumb.ondragstart = () => false;
+    thumb.onpointerdown = this.onPointerDown;
 
     this.elem.addEventListener('click', (event) => {
       let left = event.clientX - this.elem.getBoundingClientRect().left;
